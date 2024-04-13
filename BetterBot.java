@@ -7,8 +7,7 @@ import java.util.ArrayList;
 import java.util.Random;
 
 /**
- * A Sample random shooter - Takes no precaution on double shooting and has no strategy once
- * a ship is hit - This is not a good solution to the problem!
+ * A simple BattleShip bot that fires shots at random locations on the board
  * @author Andrew.Rerecich
  * @author Nicolas.Chiasson
  */
