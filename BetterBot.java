@@ -1,4 +1,5 @@
 
+
 import battleship.*;
 
 import java.awt.Point;
@@ -8,159 +9,71 @@ import java.util.Random;
 /**
  * A Sample random shooter - Takes no precaution on double shooting and has no strategy once
  * a ship is hit - This is not a good solution to the problem!
- *
- * @author mark.yendt@mohawkcollege.ca (Dec 2021)
+ * @author Andrew.Rerecich
+ * @author Nicolas.Chiasson
  */
 public class BetterBot implements BattleShipBot {
+    // The size of the game board
     private int gameSize;
+    // A reference to the BattleShip game
     private BattleShip2 battleShip;
+    // A random number generator
     private Random random;
+    // An array list to store the shots fired
     static ArrayList<Point> shotsFired = new ArrayList<>();
+    // A counter to keep track of the number of shots fired
     public long count = 0;
 
     /**
-     * Constructor keeps a copy of the BattleShip instance
-     * Create instances of any Data Structures and initialize any variables here
-     *
-     * @param b previously created battleship instance - should be a new game
-     */
-
+        * Initialize the AI with a reference to the BattleShip game
+        *
+        * @param b a BattleShip game instance
+        */
     @Override
     public void initialize(BattleShip2 b) {
         battleShip = b;
         gameSize = b.BOARD_SIZE;
 
-        // Need to use a Seed if you want the same results to occur from run to run
-        // This is needed if you are trying to improve the performance of your code
-
-        random = new Random(0xAAAAAAAA);   // Needed for random shooter - not required for more systematic approaches
+        random = new Random(0xAAAAAAAA);
     }
 
     /**
-     * Create a random shot and calls the battleship shoot method
-     * Put all logic here (or in other methods called from here)
-     * The BattleShip API will call your code until all ships are sunk
+     * Fire a shot at a random location on the board
      */
-
     @Override
     public void fireShot() {
 
         boolean try_again = true;
         boolean hit = false;
         int x = 0, y = 0;
-        boolean[][] map = new boolean[15][15]; //The map index becomes true for every shot that hits
-            for (int i = 0; i < gameSize; i++) {
+        while (try_again) {
+            for (int i = 0; i < gameSize; i++) { //Iterates the length of the board
                 x = i;
-                for (int j = 0; j < gameSize; j++) {
+                for (int j = 0; j < gameSize; j++) { //Iterates the width of the board
                     y = j;
 
                     Point fire = new Point(x, y);
-                    if (shotsFired.isEmpty()) {
-                        System.out.println("First shot");
+                    //If the shot has not been fired, fire
+                    if (shotsFired == null) {
                         shotsFired.add(fire);
-                        map[x][y] = true;
-                    } else if (shotsFired.contains(fire)) {
-                        System.out.println("Shot already taken");
+                        try_again = false;
                     } else {
-                        shotsFired.add(fire);
+                        //If the shot has already been fired, try again
+                        if (shotsFired.contains(fire)) {
+                            try_again = true;
+                        } else {
+                            shotsFired.add(fire);
+                            try_again = false;
+                        }
                         hit = battleShip.shoot(fire);
+                        //If the shot hits a ship, increment the count
                         if (hit) {
                             count++;
-                            map[x][y] = true;
-                            smartSelectShot(fire, map);
+                            if (count >= 24) {
+                                shotsFired = new ArrayList<>();
+                            }
                         }
                     }
-                    //System.out.println(count);
-                    if (count >= 24) {
-                        shotsFired = new ArrayList<>();
-                        count = 0;
-                    }
-                }
-            }
-        for(int k = 0; k < map.length; k++) {
-            for(int l = 0; l < map[k].length; l++) {
-                System.out.print(map[k][l]);
-            }
-            System.out.println();
-        }
-        System.out.println("Count: " + count);
-            }
-        // Will return true if we shot a ship
-
-    public void smartSelectShot(Point plots, boolean[][] map) {
-        int x = plots.x;
-        int y = plots.y;
-
-        Point up = new Point(x, y - 1);
-        Point down = new Point(x, y + 1);
-        Point left = new Point(x - 1, y);
-        Point right = new Point(x + 1, y);
-
-        hitUp(up, map);
-        hitDown(down, map);
-        hitLeft(left, map);
-        hitRight(right, map);
-
-    }
-    public void hitLeft(Point plots, boolean[][] map) {
-        int x = plots.x;
-        int y = plots.y;
-        Point left = new Point(x - 1, y);
-        if(left.getX() > 0) {
-            if(!map[(int) left.getX()][(int) left.getY()]) {
-                boolean hitLeft = battleShip.shoot(left);
-                if(hitLeft) {
-                    count++;
-                    map[(int) left.getX()][(int) left.getY()] = true;
-                    smartSelectShot(left, map);
-                }
-            }
-        }
-    }
-
-    public void hitRight(Point plots, boolean[][] map) {
-        int x = plots.x;
-        int y = plots.y;
-        Point right = new Point(x + 1, y);
-        if(right.getX() < map.length - 1) {
-            if(!map[(int) right.getX()][(int) right.getY()]) {
-                boolean hitRight = battleShip.shoot(right);
-                if(hitRight) {
-                    count++;
-                    map[(int) right.getX()][(int) right.getY()] = true;
-                    smartSelectShot(right, map);
-                }
-            }
-        }
-    }
-
-    public void hitUp(Point plots, boolean[][] map) {
-        int x = plots.x;
-        int y = plots.y;
-        Point up = new Point(x, y - 1);
-        if(up.getY() > 0) {
-            if(!map[(int) up.getX()][(int) up.getY()]) {
-                boolean hitUp = battleShip.shoot(up);
-                if(hitUp) {
-                    count++;
-                    map[(int) up.getX()][(int) up.getY()] = true;
-                    smartSelectShot(up, map);
-                }
-            }
-        }
-    }
-
-    public void hitDown(Point plots, boolean[][] map) {
-        int x = plots.x;
-        int y = plots.y;
-        Point down = new Point(x, y + 1);
-        if(down.getY() < map[0].length) {
-            if(!map[(int) down.getX()][(int) down.getY()]) {
-                boolean hitDown = battleShip.shoot(down);
-                if(hitDown) {
-                    map[(int) down.getX()][(int) down.getY()] = true;
-                    smartSelectShot(down, map);
-                    count++;
                 }
             }
         }
@@ -168,14 +81,14 @@ public class BetterBot implements BattleShipBot {
 
 
     /**
-     * Authorship of the solution - must return names of all students that contributed to
-     * the solution
+     * Return the name of the author of this bot
      *
-     * @return names of the authors of the solution
+     * @return the author of the bot
      */
 
     @Override
     public String getAuthors() {
-        return "Andrew Rerecich, Nicolas Chaisson";
+        return "Andrew Rerecich, Nicolas Chiasson";
     }
 }
+
